@@ -29,17 +29,17 @@ app.get("/status", (request, response) => {
   response.send(status);
 });
 
-app.get("/submitTx", async (request, response) => {
+app.post("/submitTx", async (request, response) => {
   const gateway = new Gateway();
   const wallet = await Wallets.newFileSystemWallet("./wallet");
 
   try {
-    const identityLabel = request.query.identity;
-    const functionName = request.query.function;
-    var chaincodeArgs = [];
+    const identityLabel = request.body.identity;
+    const functionName = request.body.function;
+    var chaincodeArgs = request.body.args;
 
     if (functionName == "createDevice") {
-      chaincodeArgs = [request.query.deviceID, request.query.owner];
+      chaincodeArgs = [request.body.deviceID, request.body.owner];
     }
     // Add more if else conditions here based on your chaincode functions.
 
@@ -96,17 +96,15 @@ app.get("/submitTx", async (request, response) => {
   }
 });
 
-// Endpoint to query a specific device
-app.get("/queryDevice", async (request, response) => {
+app.post("/queryDevice", async (request, response) => {
   const gateway = new Gateway();
   const wallet = await Wallets.newFileSystemWallet("./wallet");
 
   try {
-    const identityLabel = request.query.identity;
+    const identityLabel = request.body.identity;
     const functionName = "queryDevice";
-    const chaincodeArgs = [request.query.deviceID];
-
-    // rest of the setup and transaction code is the same as previous endpoints...
+    const chaincodeArgs = [request.body.deviceID];
+    // ... Rest of the setup and transaction code
   } catch (error) {
     console.log(`Error processing transaction. ${error}`);
     console.log(error.stack);
@@ -117,20 +115,19 @@ app.get("/queryDevice", async (request, response) => {
   }
 });
 
-// Endpoint to record sensor data for a device
 app.post("/recordSensorData", async (request, response) => {
   const gateway = new Gateway();
   const wallet = await Wallets.newFileSystemWallet("./wallet");
 
   try {
-    const identityLabel = request.query.identity;
+    const identityLabel = request.body.identity;
     const functionName = "recordSensorData";
     const chaincodeArgs = [
-      request.query.deviceID,
-      JSON.parse(request.query.data),
+      request.body.deviceID,
+      JSON.parse(request.body.data),
     ];
 
-    // rest of the setup and transaction code is the same as previous endpoints...
+    // ... Rest of the setup and transaction code
   } catch (error) {
     console.log(`Error processing transaction. ${error}`);
     console.log(error.stack);
@@ -141,13 +138,13 @@ app.post("/recordSensorData", async (request, response) => {
   }
 });
 
-// add another endpoint for queryAllDevices
-app.get("/queryAllDevices", async (request, response) => {
+// Add another endpoint for queryAllDevices
+app.post("/queryAllDevices", async (request, response) => {
   const gateway = new Gateway();
   const wallet = await Wallets.newFileSystemWallet("./wallet");
 
   try {
-    const identityLabel = request.query.identity;
+    const identityLabel = request.body.identity;
     const functionName = "getAllDevices"; // corrected function name
 
     const orgName = identityLabel.split("@")[1];
@@ -170,6 +167,7 @@ app.get("/queryAllDevices", async (request, response) => {
       wallet: wallet,
       discovery: { enabled: true, asLocalhost: true },
     };
+
     console.log("Connect to a Hyperledger Fabric gateway.");
     await gateway.connect(connectionProfile, connectionOptions);
 
