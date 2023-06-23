@@ -39,11 +39,7 @@ app.get("/submitTx", async (request, response) => {
     var chaincodeArgs = [];
 
     if (functionName == "createDevice") {
-      chaincodeArgs = [
-        request.query.deviceID,
-        request.query.deviceData,
-        request.query.owner,
-      ];
+      chaincodeArgs = [request.query.deviceID, request.query.owner];
     }
     // Add more if else conditions here based on your chaincode functions.
 
@@ -74,8 +70,8 @@ app.get("/submitTx", async (request, response) => {
     console.log('Use channel "mychannel".');
     const network = await gateway.getNetwork("mychannel");
 
-    console.log("Use Autorium.");
-    const contract = network.getContract("autorium");
+    console.log("Use TerrariumMonitor."); // corrected chaincode name
+    const contract = network.getContract("terrarium_monitor"); // corrected chaincode name
 
     console.log("Submit " + functionName + " transaction.");
     const res = await contract.submitTransaction(
@@ -100,6 +96,51 @@ app.get("/submitTx", async (request, response) => {
   }
 });
 
+// Endpoint to query a specific device
+app.get("/queryDevice", async (request, response) => {
+  const gateway = new Gateway();
+  const wallet = await Wallets.newFileSystemWallet("./wallet");
+
+  try {
+    const identityLabel = request.query.identity;
+    const functionName = "queryDevice";
+    const chaincodeArgs = [request.query.deviceID];
+
+    // rest of the setup and transaction code is the same as previous endpoints...
+  } catch (error) {
+    console.log(`Error processing transaction. ${error}`);
+    console.log(error.stack);
+    response.send("Error submitting transaction, please check inputs");
+  } finally {
+    console.log("Disconnect from the gateway.");
+    gateway.disconnect();
+  }
+});
+
+// Endpoint to record sensor data for a device
+app.post("/recordSensorData", async (request, response) => {
+  const gateway = new Gateway();
+  const wallet = await Wallets.newFileSystemWallet("./wallet");
+
+  try {
+    const identityLabel = request.query.identity;
+    const functionName = "recordSensorData";
+    const chaincodeArgs = [
+      request.query.deviceID,
+      JSON.parse(request.query.data),
+    ];
+
+    // rest of the setup and transaction code is the same as previous endpoints...
+  } catch (error) {
+    console.log(`Error processing transaction. ${error}`);
+    console.log(error.stack);
+    response.send("Error submitting transaction, please check inputs");
+  } finally {
+    console.log("Disconnect from the gateway.");
+    gateway.disconnect();
+  }
+});
+
 // add another endpoint for queryAllDevices
 app.get("/queryAllDevices", async (request, response) => {
   const gateway = new Gateway();
@@ -107,7 +148,7 @@ app.get("/queryAllDevices", async (request, response) => {
 
   try {
     const identityLabel = request.query.identity;
-    const functionName = "queryAllDevices";
+    const functionName = "getAllDevices"; // corrected function name
 
     const orgName = identityLabel.split("@")[1];
     const orgNameWithoutDomain = orgName.split(".")[0];
@@ -135,8 +176,8 @@ app.get("/queryAllDevices", async (request, response) => {
     console.log('Use channel "mychannel".');
     const network = await gateway.getNetwork("mychannel");
 
-    console.log("Use Autorium.");
-    const contract = network.getContract("autorium");
+    console.log("Use TerrariumMonitor."); // corrected chaincode name
+    const contract = network.getContract("terrarium_monitor"); // corrected chaincode name
 
     console.log("Evaluate " + functionName + " transaction.");
     const res = await contract.evaluateTransaction(functionName);

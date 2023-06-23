@@ -47,14 +47,25 @@ async function main() {
     console.log('Use channel "mychannel".');
     const network = await gateway.getNetwork("mychannel");
 
-    console.log("Use Autorium.");
-    const contract = network.getContract("autorium");
+    console.log("Use TerrariumMonitor.");
+    const contract = network.getContract("terrarium_monitor");
 
+    let response;
     console.log("Submit " + functionName + " transaction.");
-    const response = await contract.submitTransaction(
-      functionName,
-      ...chaincodeArgs
-    );
+
+    if (functionName === "recordSensorData") {
+      const [deviceId, data] = chaincodeArgs;
+      response = await contract.submitTransaction(
+        functionName,
+        deviceId,
+        JSON.parse(data) // Assuming that the data will be a stringified JSON object
+      );
+    } else {
+      response = await contract.submitTransaction(
+        functionName,
+        ...chaincodeArgs
+      );
+    }
 
     if (`${response}` !== "") {
       console.log(`Response from ${functionName}: ${response}`);
