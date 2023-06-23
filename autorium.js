@@ -7,6 +7,7 @@ class TerrariumMonitor extends Contract {
     console.info("============= START : Initialize Ledger ===========");
     const devices = [
       {
+        docType: "device",
         deviceId: "device1",
         owner: "Client",
         sensorData: [
@@ -15,6 +16,7 @@ class TerrariumMonitor extends Contract {
         ],
       },
       {
+        docType: "device",
         deviceId: "device2",
         owner: "Business",
         sensorData: [
@@ -23,6 +25,7 @@ class TerrariumMonitor extends Contract {
         ],
       },
       {
+        docType: "device",
         deviceId: "device3",
         owner: "Manufacturer",
         sensorData: [
@@ -33,7 +36,6 @@ class TerrariumMonitor extends Contract {
     ];
 
     for (let i = 0; i < devices.length; i++) {
-      devices[i].docType = "device";
       await ctx.stub.putState(
         "DEVICE" + i,
         Buffer.from(JSON.stringify(devices[i]))
@@ -78,6 +80,31 @@ class TerrariumMonitor extends Contract {
 
     await ctx.stub.putState(deviceId, Buffer.from(JSON.stringify(device)));
     console.info("============= END : Record Sensor Data ===========");
+  }
+
+  async getAllDevices(ctx) {
+    console.info("============= START : Get All Devices ===========");
+
+    const startKey = "";
+    const endKey = "";
+
+    const iterator = await ctx.stub.getStateByRange(startKey, endKey);
+
+    const allDevices = [];
+    while (true) {
+      const result = await iterator.next();
+
+      if (result.value && result.value.value.toString()) {
+        console.log(result.value.value.toString());
+        allDevices.push(JSON.parse(result.value.value.toString()));
+      }
+
+      if (result.done) {
+        await iterator.close();
+        console.info("============= END : Get All Devices ===========");
+        return JSON.stringify(allDevices);
+      }
+    }
   }
 }
 
